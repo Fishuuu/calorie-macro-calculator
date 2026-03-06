@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cut Calories & Macros Calculator</title>
+  <style>
+    :root {
+      --bg: #fff8fb;
+      --panel: #ffffff;
+      --panel-2: #fff3f7;
+      --text: #4b4453;
+      --muted: #8b7f8f;
+      --pink: #f7cfe0;
+      --pink-strong: #eea9c4;
+      --lavender: #dcd4ff;
+      --mint: #d8f3e8;
+      --peach: #ffe2cf;
+      --yellow: #fff0b8;
+      --danger: #d95c7a;
+      --border: #efd9e3;
+      --shadow: 0 12px 30px rgba(185, 144, 164, 0.16);
+      --radius: 22px;
+      --radius-sm: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background:
+        radial-gradient(circle at top left, #ffeef6 0, #ffeef6 18%, transparent 19%) 0 0 / 180px 180px,
+        radial-gradient(circle at top right, #eef7ff 0, #eef7ff 16%, transparent 17%) 100% 0 / 220px 220px,
+        linear-gradient(180deg, #fffafc 0%, #fff6fb 100%);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      min-height: 100%;
+    }
+
+    body {
+      padding: 24px 16px 40px;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 620px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .blob,
+    .blob::before,
+    .blob::after {
+      position: absolute;
+      content: "";
+      border-radius: 999px;
+      pointer-events: none;
+    }
+
+    .blob.one {
+      width: 82px;
+      height: 82px;
+      background: rgba(247, 207, 224, 0.55);
+      top: -10px;
+      right: 8px;
+      filter: blur(1px);
+    }
+
+    .blob.one::before {
+      width: 22px;
+      height: 22px;
+      background: rgba(220, 212, 255, 0.8);
+      top: 68px;
+      left: -10px;
+    }
+
+    .blob.one::after {
+      width: 12px;
+      height: 12px;
+      background: rgba(216, 243, 232, 0.9);
+      top: 18px;
+      right: -10px;
+    }
+
+    .blob.two {
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 226, 207, 0.7);
+      top: 120px;
+      left: -10px;
+    }
+
+    .blob.two::before {
+      width: 14px;
+      height: 14px;
+      background: rgba(255, 240, 184, 0.9);
+      top: -8px;
+      right: -5px;
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      backdrop-filter: blur(8px);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.8rem;
+      line-height: 1.2;
+      letter-spacing: 0.01em;
+    }
+
+    .subtitle {
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 0.96rem;
+      line-height: 1.45;
+    }
+
+    form {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    label {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .hint {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--panel);
+      color: var(--text);
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.08s ease;
+    }
+
+    input[type="number"]:focus,
+    select:focus,
+    input[type="range"]:focus {
+      border-color: var(--pink-strong);
+      box-shadow: 0 0 0 4px rgba(238, 169, 196, 0.18);
+    }
+
+    input.invalid,
+    select.invalid {
+      border-color: var(--danger);
+      background: #fff8fa;
+    }
+
+    .error {
+      min-height: 16px;
+      font-size: 0.8rem;
+      color: var(--danger);
+    }
+
+    .parts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .slider-wrap {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+    }
+
+    .slider-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 58px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--lavender);
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #e797b9;
+      cursor: pointer;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    button {
+      min-height: 46px;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform 0.08s ease, opacity 0.15s ease, filter 0.15s ease;
+    }
+
+    button:hover {
+      filter: brightness(0.98);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #f9c9db, #e9d8ff);
+      color: #4b4453;
+      border: 1px solid #edc4d4;
+    }
+
+    .btn-primary:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #e9fbf4, #fff0dc);
+      color: #4b4453;
+      border: 1px solid #dcebe5;
+    }
+
+    .results {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, #fffefc 0%, #fff4f8 100%);
+      display: none;
+    }
+
+    .results.show {
+      display: block;
+    }
+
+    .results h2 {
+      margin: 0 0 12px;
+      font-size: 1.1rem;
+    }
+
+    .result-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 14px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+
+    .result-item strong {
+      font-size: 1rem;
+    }
+
+    .result-item span {
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    @media (max-width: 520px) {
+      .card {
+        padding: 18px;
+      }
+
+      .parts-grid,
+      .actions {
+        grid-template-columns: 1fr;
+      }
+
+      .result-item {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="blob one"></div>
+    <div class="blob two"></div>
+
+    <div class="card">
+      <h1>Cut Calories &amp; Macros</h1>
+      <p class="subtitle">A simple daily calorie and macro calculator for a cut goal using metric inputs and Mifflin–St Jeor.</p>
+
+      <form id="calcForm" novalidate>
+        <div class="field">
+          <label for="sex">Sex</label>
+          <select id="sex" name="sex" required>
+            <option value="">Select sex</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+          <div class="error" id="sexError"></div>
+        </div>
+
+        <div class="field">
+          <label for="age">Age</label>
+          <input id="age" name="age" type="number" inputmode="numeric" min="10" max="100" step="1" required />
+          <div class="error" id="ageError"></div>
+        </div>
+
+        <div class="field">
+          <label for="height">Height (cm)</label>
+          <input id="height" name="height" type="number" inputmode="numeric" min="120" max="230" step="1" required />
+          <div class="error" id="heightError"></div>
+        </div>
+
+        <div class="field">
+          <label for="weight">Weight (kg)</label>
+          <input id="weight" name="weight" type="number" inputmode="numeric" min="30" max="200" step="1" required />
+          <div class="error" id="weightError"></div>
+        </div>
+
+        <div class="field">
+          <label for="activity">Exercise intensity</label>
+          <select id="activity" name="activity" required>
+            <option value="">Select intensity</option>
+            <option value="1.2">Sedentary: 1.2</option>
+            <option value="1.375">Light (1–3 days/week): 1.375</option>
+            <option value="1.55">Moderate (3–5 days/week): 1.55</option>
+            <option value="1.725">Very active (6–7 days/week): 1.725</option>
+            <option value="1.9">Athlete: 1.9</option>
+          </select>
+          <div class="error" id="activityError"></div>
+        </div>
+
+        <div class="field">
+          <label for="deficit">Calorie deficit (%)</label>
+          <div class="slider-wrap">
+            <div class="slider-head">
+              <span class="hint">Choose a cut level</span>
+              <span class="pill" id="deficitValue">15%</span>
+            </div>
+            <input id="deficit" name="deficit" type="range" min="10" max="25" step="1" value="15" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Macro split parts</label>
+          <div class="parts-grid">
+            <div>
+              <label for="carbsParts" class="hint">Carbs parts</label>
+              <input id="carbsParts" name="carbsParts" type="number" inputmode="numeric" min="0" max="20" step="1" value="3" required />
+              <div class="error" id="carbsPartsError"></div>
+            </div>
+            <div>
+              <label for="proteinParts" class="hint">Protein parts</label>
+              <input id="proteinParts" name="proteinParts" type="number" inputmode="numeric" min="0" max="20" step="1" value="4" required />
+              <div class="error" id="proteinPartsError"></div>
+            </div>
+            <div>
+              <label for="fatParts" class="hint">Fat parts</label>
+              <input id="fatParts" name="fatParts" type="number" inputmode="numeric" min="0" max="20" step="1" value="3" required />
+              <div class="error" id="fatPartsError"></div>
+            </div>
+          </div>
+          <div class="error" id="partsTotalError"></div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn-primary" id="calculateBtn" disabled>Calculate</button>
+          <button type="button" class="btn-secondary" id="resetBtn">Reset</button>
+        </div>
+      </form>
+
+      <div class="results" id="results" aria-live="polite">
+        <h2>Results</h2>
+        <div class="result-list">
+          <div class="result-item">
+            <span>TDEE</span>
+            <strong id="outTdee">—</strong>
+          </div>
+          <div class="result-item">
+            <span>Target calories</span>
+            <strong id="outTarget">—</strong>
+          </div>
+          <div class="result-item">
+            <span>Carbs</span>
+            <strong id="outCarbs">—</strong>
+          </div>
+          <div class="result-item">
+            <span>Protein</span>
+            <strong id="outProtein">—</strong>
+          </div>
+          <div class="result-item">
+            <span>Fat</span>
+            <strong id="outFat">—</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-note">Inputs must be integers only.</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const form = document.getElementById('calcForm');
+      const calculateBtn = document.getElementById('calculateBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const results = document.getElementById('results');
+
+      const fields = {
+        sex: document.getElementById('sex'),
+        age: document.getElementById('age'),
+        height: document.getElementById('height'),
+        weight: document.getElementById('weight'),
+        activity: document.getElementById('activity'),
+        deficit: document.getElementById('deficit'),
+        carbsParts: document.getElementById('carbsParts'),
+        proteinParts: document.getElementById('proteinParts'),
+        fatParts: document.getElementById('fatParts')
+      };
+
+      const errors = {
+        sex: document.getElementById('sexError'),
+        age: document.getElementById('ageError'),
+        height: document.getElementById('heightError'),
+        weight: document.getElementById('weightError'),
+        activity: document.getElementById('activityError'),
+        carbsParts: document.getElementById('carbsPartsError'),
+        proteinParts: document.getElementById('proteinPartsError'),
+        fatParts: document.getElementById('fatPartsError'),
+        partsTotal: document.getElementById('partsTotalError')
+      };
+
+      const outputs = {
+        tdee: document.getElementById('outTdee'),
+        target: document.getElementById('outTarget'),
+        carbs: document.getElementById('outCarbs'),
+        protein: document.getElementById('outProtein'),
+        fat: document.getElementById('outFat')
+      };
+
+      const deficitValue = document.getElementById('deficitValue');
+
+      const defaults = {
+        sex: '',
+        age: '',
+        height: '',
+        weight: '',
+        activity: '',
+        deficit: 15,
+        carbsParts: 3,
+        proteinParts: 4,
+        fatParts: 3
+      };
+
+      function isIntegerString(value) {
+        return /^-?\d+$/.test(String(value).trim());
+      }
+
+      function setError(input, errorEl, message) {
+        errorEl.textContent = message || '';
+        input.classList.toggle('invalid', Boolean(message));
+      }
+
+      function validateRequiredSelect(input, errorEl, label) {
+        if (!input.value) {
+          setError(input, errorEl, label + ' is required.');
+          return false;
+        }
+        setError(input, errorEl, '');
+        return true;
+      }
+
+      function validateIntegerInput(input, errorEl, label, min, max) {
+        const value = input.value.trim();
+
+        if (value === '') {
+          setError(input, errorEl, label + ' is required.');
+          return false;
+        }
+
+        if (!isIntegerString(value)) {
+          setError(input, errorEl, label + ' must be an integer.');
+          return false;
+        }
+
+        const num = Number(value);
+
+        if (num < min || num > max) {
+          setError(input, errorEl, label + ' must be between ' + min + ' and ' + max + '.');
+          return false;
+        }
+
+        setError(input, errorEl, '');
+        return true;
+      }
+
+      function validatePartsTotal() {
+        const parts = [fields.carbsParts, fields.proteinParts, fields.fatParts];
+        const allValid = parts.every((input) => isIntegerString(input.value.trim()));
+        if (!allValid) {
+          errors.partsTotal.textContent = '';
+          return false;
+        }
+
+        const total = parts.reduce((sum, input) => sum + Number(input.value), 0);
+
+        if (total <= 0) {
+          errors.partsTotal.textContent = 'Total macro parts must be greater than 0.';
+          return false;
+        }
+
+        errors.partsTotal.textContent = '';
+        return true;
+      }
+
+      function validateAll() {
+        const validSex = validateRequiredSelect(fields.sex, errors.sex, 'Sex');
+        const validAge = validateIntegerInput(fields.age, errors.age, 'Age', 10, 100);
+        const validHeight = validateIntegerInput(fields.height, errors.height, 'Height', 120, 230);
+        const validWeight = validateIntegerInput(fields.weight, errors.weight, 'Weight', 30, 200);
+        const validActivity = validateRequiredSelect(fields.activity, errors.activity, 'Exercise intensity');
+
+        const validCarbs = validateIntegerInput(fields.carbsParts, errors.carbsParts, 'Carbs parts', 0, 20);
+        const validProtein = validateIntegerInput(fields.proteinParts, errors.proteinParts, 'Protein parts', 0, 20);
+        const validFat = validateIntegerInput(fields.fatParts, errors.fatParts, 'Fat parts', 0, 20);
+
+        const validTotal = validCarbs && validProtein && validFat && validatePartsTotal();
+
+        const isValid = validSex && validAge && validHeight && validWeight && validActivity && validTotal;
+        calculateBtn.disabled = !isValid;
+        return isValid;
+      }
+
+      function round(value) {
+        return Math.round(value);
+      }
+
+      function calculate() {
+        const sex = fields.sex.value;
+        const age = Number(fields.age.value);
+        const height = Number(fields.height.value);
+        const weight = Number(fields.weight.value);
+        const activityMultiplier = Number(fields.activity.value);
+        const deficitPct = Number(fields.deficit.value) / 100;
+
+        const carbsParts = Number(fields.carbsParts.value);
+        const proteinParts = Number(fields.proteinParts.value);
+        const fatParts = Number(fields.fatParts.value);
+        const totalParts = carbsParts + proteinParts + fatParts;
+
+        let bmr;
+        if (sex === 'male') {
+          bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+        } else {
+          bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+        }
+
+        const tdee = bmr * activityMultiplier;
+        const targetKcal = tdee * (1 - deficitPct);
+
+        const carbsKcal = targetKcal * (carbsParts / totalParts);
+        const proteinKcal = targetKcal * (proteinParts / totalParts);
+        const fatKcal = targetKcal * (fatParts / totalParts);
+
+        const carbsG = round(carbsKcal / 4);
+        const proteinG = round(proteinKcal / 4);
+        const fatG = round(fatKcal / 9);
+
+        outputs.tdee.textContent = round(tdee) + ' kcal/day';
+        outputs.target.textContent = round(targetKcal) + ' kcal/day (' + fields.deficit.value + '% deficit)';
+        outputs.carbs.textContent = carbsG + ' g/day';
+        outputs.protein.textContent = proteinG + ' g/day';
+        outputs.fat.textContent = fatG + ' g/day';
+
+        results.classList.add('show');
+      }
+
+      function resetForm() {
+        fields.sex.value = defaults.sex;
+        fields.age.value = defaults.age;
+        fields.height.value = defaults.height;
+        fields.weight.value = defaults.weight;
+        fields.activity.value = defaults.activity;
+        fields.deficit.value = defaults.deficit;
+        fields.carbsParts.value = defaults.carbsParts;
+        fields.proteinParts.value = defaults.proteinParts;
+        fields.fatParts.value = defaults.fatParts;
+
+        deficitValue.textContent = defaults.deficit + '%';
+
+        Object.values(errors).forEach((el) => {
+          el.textContent = '';
+        });
+
+        Object.values(fields).forEach((input) => {
+          if (input.classList) {
+            input.classList.remove('invalid');
+          }
+        });
+
+        outputs.tdee.textContent = '—';
+        outputs.target.textContent = '—';
+        outputs.carbs.textContent = '—';
+        outputs.protein.textContent = '—';
+        outputs.fat.textContent = '—';
+
+        results.classList.remove('show');
+        calculateBtn.disabled = true;
+      }
+
+      fields.deficit.addEventListener('input', function () {
+        deficitValue.textContent = fields.deficit.value + '%';
+      });
+
+      [
+        fields.sex,
+        fields.age,
+        fields.height,
+        fields.weight,
+        fields.activity,
+        fields.carbsParts,
+        fields.proteinParts,
+        fields.fatParts
+      ].forEach((input) => {
+        input.addEventListener('input', validateAll);
+        input.addEventListener('change', validateAll);
+        input.addEventListener('blur', validateAll);
+      });
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        if (!validateAll()) return;
+        calculate();
+      });
+
+      resetBtn.addEventListener('click', resetForm);
+
+      resetForm();
+    })();
+  </script>
+</body>
+</html>
